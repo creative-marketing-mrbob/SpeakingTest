@@ -1795,7 +1795,8 @@
     }
     .pdf-photo-dummy svg { width: 100%; height: 100%; display: block; }
     .pdf-name { font-size: 56px; line-height: 1.05; font-weight: 950; margin-bottom: 28px; word-break: break-word; }
-    .pdf-meta { font-size: 25px; line-height: 1.8; font-weight: 750; }
+    .pdf-meta { font-size: 25px; line-height: 1.45; font-weight: 750; }
+    .pdf-meta div + div { margin-top: 18px; }
     .pdf-score-box {
       display: grid;
       place-items: center;
@@ -2490,6 +2491,18 @@
         <div class="panel question-panel"><h2>Review Rekaman</h2><p>Task yang belum direkam tetap bisa dikirim, tapi akan dihitung 0. Kalau semua kosong, total score juga 0.</p><div class="review-list" id="reviewList"></div><button class="btn" id="submitBtn" type="button">Submit Speaking Test</button><button class="btn ghost" id="backToTestBtn" type="button" style="margin-top:10px">← Kembali ke Task</button></div>
       </section>
       <section class="screen" id="screenResult">
+        <div class="result-hero"><div class="result-copy"><h2>Hasil Speaking Kamu</h2><p id="resultSubcopy">Penilaian speaking selesai.</p><div class="level-badge" id="levelBadge">Beginner</div></div><div class="mascot result-mascot" aria-hidden="true"><div class="hair"></div><div class="head"></div><div class="body"></div><div class="arm"></div></div></div>
+        <div class="result-score-card web-score-card" id="webScoreCard">
+          <div class="web-score-label"><span>Skor Speaking</span></div>
+          <div class="web-score-meter">
+            <svg viewBox="0 0 220 145" aria-hidden="true">
+              <path d="M30 120 A80 80 0 0 1 190 120" fill="none" stroke="#edf0f5" stroke-width="18" stroke-linecap="round"/>
+              <path id="webScoreArc" d="M30 120 A80 80 0 0 1 190 120" fill="none" stroke="#f6a11a" stroke-width="18" stroke-linecap="round" pathLength="100"/>
+            </svg>
+            <strong id="scoreValue">0</strong>
+            <div class="web-score-scale"><span>0</span><span>100</span></div>
+          </div>
+        </div>
         <div class="result-profile-card">
           <div>
             <img class="certificate-photo" id="certPhoto" alt="Foto peserta">
@@ -2503,18 +2516,6 @@
               <div><b>Tanggal tes:</b> <span id="certDate">-</span></div>
               <div><b>Level Speaking:</b> <span id="certProfileLevel">-</span></div>
             </div>
-          </div>
-        </div>
-        <div class="result-hero"><div class="result-copy"><h2>Hasil Speaking Kamu</h2><p id="resultSubcopy">Penilaian speaking selesai.</p><div class="level-badge" id="levelBadge">Beginner</div></div><div class="mascot result-mascot" aria-hidden="true"><div class="hair"></div><div class="head"></div><div class="body"></div><div class="arm"></div></div></div>
-        <div class="result-score-card web-score-card" id="webScoreCard">
-          <div class="web-score-label"><span>Skor Speaking</span></div>
-          <div class="web-score-meter">
-            <svg viewBox="0 0 220 145" aria-hidden="true">
-              <path d="M30 120 A80 80 0 0 1 190 120" fill="none" stroke="#edf0f5" stroke-width="18" stroke-linecap="round"/>
-              <path id="webScoreArc" d="M30 120 A80 80 0 0 1 190 120" fill="none" stroke="#f6a11a" stroke-width="18" stroke-linecap="round" pathLength="100"/>
-            </svg>
-            <strong id="scoreValue">0</strong>
-            <div class="web-score-scale"><span>0</span><span>100</span></div>
           </div>
         </div>
         <details class="panel result-dropdown" open><summary>Ringkasan Level</summary><div class="dropdown-content"><div class="insight-card"><div class="insight-icon"><img src="icon/insights.png" alt=""></div><div><strong id="insightTitle">Penilaian speaking berbasis rubrik</strong><p id="levelMeaning"></p></div></div></div></details>
@@ -2671,7 +2672,7 @@
     function appendCanvasToPdf(pdf,canvas,hasPage){const pageWidth=1400;const pageHeight=1800;for(let offset=0;offset<canvas.height;offset+=pageHeight){const sliceHeight=Math.min(pageHeight,canvas.height-offset);if(sliceHeight<40)continue;if(hasPage)pdf.addPage([pageWidth,pageHeight],"portrait");const slice=document.createElement("canvas");slice.width=pageWidth;slice.height=pageHeight;const ctx=slice.getContext("2d");ctx.fillStyle="#f1f6ff";ctx.fillRect(0,0,pageWidth,pageHeight);ctx.drawImage(canvas,0,offset,pageWidth,sliceHeight,0,0,pageWidth,sliceHeight);pdf.addImage(slice.toDataURL("image/jpeg",.92),"JPEG",0,0,pageWidth,pageHeight);hasPage=true;}return hasPage;}
     async function loadPdfLibraries(){await loadScriptOnce("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",()=>window.html2canvas);await loadScriptOnce("https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",()=>window.jspdf?.jsPDF);}
     function loadScriptOnce(src,ready){return new Promise((resolve,reject)=>{if(ready())return resolve();const existing=[...document.scripts].find(script=>script.src===src);if(existing){existing.addEventListener("load",()=>resolve(),{once:true});existing.addEventListener("error",reject,{once:true});return;}const script=document.createElement("script");script.src=src;script.async=true;script.onload=()=>ready()?resolve():reject(new Error(`Library not ready: ${src}`));script.onerror=reject;document.head.appendChild(script);});}
-    function buildPdfReportHtml(){const result=state.result;const user=state.user||{};const level=getLevel(result.overallScore);const hasUploadedPhoto=Boolean(user.photoDataUrl);const photoMarkup=hasUploadedPhoto?`<img class="pdf-photo" src="${getProfilePhoto()}" alt="">`:`<div class="pdf-photo pdf-photo-dummy" aria-hidden="true">${getDummyProfileSvg()}</div>`;const date=formatDate(new Date());const icons={taskResponse:"open-book",fluencyCoherence:"speech-bubble",pronunciation:"headphones",grammar:"book",vocabulary:"dictionary",communicationStrategy:"target"};const firstPage=`<section class="pdf-page"><div class="pdf-card pdf-header"><img class="pdf-logo" src="icon/logo-mrbob.png" alt=""><div class="pdf-title">Check Your English Level</div></div><div class="pdf-blue">${photoMarkup}<div><div class="pdf-name">${escapeHtml(user.name||"Nama Peserta")}</div><div class="pdf-meta"><b>Tanggal tes:</b> ${escapeHtml(date)}<br><b>Level Speaking:</b> ${escapeHtml(result.cefrLevel||level.name)}</div></div><div class="pdf-score-box"><span>Skor Speaking</span><strong>${result.overallScore}</strong></div></div><div class="pdf-card pdf-level"><img class="pdf-icon" src="icon/insights.png" alt=""><div><h2>${escapeHtml(result.cefrLevel||level.name)} Speaking</h2><p>${escapeHtml(level.meaning)}</p></div></div><div class="pdf-card"><h2 class="pdf-section-title">Speaking Breakdown</h2><div class="pdf-breakdown">${CRITERIA.map(([key,label,max])=>{const value=Math.round((clamp(result.criteria[key],0,max)/max)*100);return`<div class="pdf-breakdown-item"><img src="icon/${icons[key]}.png" alt=""><b>${escapeHtml(label).toUpperCase()}</b><strong>${value}</strong></div>`;}).join("")}</div></div><div class="pdf-card"><h2 class="pdf-section-title">Feedback</h2><div class="pdf-feedback-grid"><div class="pdf-feedback"><h3>Strength</h3><p>${escapeHtml(shortStrengthText(result))}</p></div><div class="pdf-feedback"><h3>Weakness</h3><p>${escapeHtml(shortWeaknessText(result))}</p></div><div class="pdf-feedback"><h3>Teachers Note</h3><p>${escapeHtml(shortTeacherNote(result))}</p></div></div></div></section>`;const taskPages=TASKS.map((task,index)=>{const detail=result.taskScores.find(item=>item.id===task.id)||{};const score=displayTaskScore(detail.score);return`<section class="pdf-page"><div class="pdf-card pdf-task"><h2>${index+1}. ${escapeHtml(task.title)} - Nilai ${score}</h2>${renderTaskFeedback(task,detail,score)}${detail.transcript?`<div class="feedback-line"><b>Transkrip:</b>${formatFeedbackSentences(detail.transcript)}</div>`:""}</div></section>`;}).join("");return firstPage+taskPages;}
+    function buildPdfReportHtml(){const result=state.result;const user=state.user||{};const level=getLevel(result.overallScore);const hasUploadedPhoto=Boolean(user.photoDataUrl);const photoMarkup=hasUploadedPhoto?`<img class="pdf-photo" src="${getProfilePhoto()}" alt="">`:`<div class="pdf-photo pdf-photo-dummy" aria-hidden="true">${getDummyProfileSvg()}</div>`;const date=formatDate(new Date());const icons={taskResponse:"open-book",fluencyCoherence:"speech-bubble",pronunciation:"headphones",grammar:"book",vocabulary:"dictionary",communicationStrategy:"target"};const firstPage=`<section class="pdf-page"><div class="pdf-card pdf-header"><img class="pdf-logo" src="icon/logo-mrbob.png" alt=""><div class="pdf-title">Check Your English Level</div></div><div class="pdf-blue">${photoMarkup}<div><div class="pdf-name">${escapeHtml(user.name||"Nama Peserta")}</div><div class="pdf-meta"><div><b>Tanggal tes:</b> ${escapeHtml(date)}</div><div><b>Level Speaking:</b> ${escapeHtml(result.cefrLevel||level.name)}</div></div></div><div class="pdf-score-box"><span>Skor Speaking</span><strong>${result.overallScore}</strong></div></div><div class="pdf-card pdf-level"><img class="pdf-icon" src="icon/insights.png" alt=""><div><h2>${escapeHtml(result.cefrLevel||level.name)} Speaking</h2><p>${escapeHtml(level.meaning)}</p></div></div><div class="pdf-card"><h2 class="pdf-section-title">Speaking Breakdown</h2><div class="pdf-breakdown">${CRITERIA.map(([key,label,max])=>{const value=Math.round((clamp(result.criteria[key],0,max)/max)*100);return`<div class="pdf-breakdown-item"><img src="icon/${icons[key]}.png" alt=""><b>${escapeHtml(label).toUpperCase()}</b><strong>${value}</strong></div>`;}).join("")}</div></div><div class="pdf-card"><h2 class="pdf-section-title">Feedback</h2><div class="pdf-feedback-grid"><div class="pdf-feedback"><h3>Strength</h3><p>${escapeHtml(shortStrengthText(result))}</p></div><div class="pdf-feedback"><h3>Weakness</h3><p>${escapeHtml(shortWeaknessText(result))}</p></div><div class="pdf-feedback"><h3>Teachers Note</h3><p>${escapeHtml(shortTeacherNote(result))}</p></div></div></div></section>`;const taskPages=TASKS.map((task,index)=>{const detail=result.taskScores.find(item=>item.id===task.id)||{};const score=displayTaskScore(detail.score);return`<section class="pdf-page"><div class="pdf-card pdf-task"><h2>${index+1}. ${escapeHtml(task.title)} - Nilai ${score}</h2>${renderTaskFeedback(task,detail,score)}${detail.transcript?`<div class="feedback-line"><b>Transkrip:</b>${formatFeedbackSentences(detail.transcript)}</div>`:""}</div></section>`;}).join("");return firstPage+taskPages;}
     async function downloadResultCard(){
       const result=state.result;if(!result)return;
       const user=state.user||{};const level=getLevel(result.overallScore);
@@ -2706,8 +2707,8 @@
       drawFittedText(ctx,user.name||"Nama Peserta",315,318,56,34,"#ffffff",950,610);
       drawText(ctx,"Tanggal tes:",315,388,25,"rgba(255,255,255,.82)",700,170);
       drawText(ctx,formatDate(new Date()),470,388,25,"#ffffff",950,380);
-      drawText(ctx,"Level Speaking:",315,436,25,"rgba(255,255,255,.82)",700,250);
-      drawText(ctx,result.cefrLevel||level.name,525,436,25,"#ffffff",950,330);
+      drawText(ctx,"Level Speaking:",315,452,25,"rgba(255,255,255,.82)",700,250);
+      drawText(ctx,result.cefrLevel||level.name,525,452,25,"#ffffff",950,330);
       ctx.fillStyle="rgba(255,255,255,.14)";roundRect(ctx,940,244,300,226,32);ctx.fill();
       drawCenteredText(ctx,"Skor Speaking",1090,308,27,"#ffffff",950);
       drawCenteredText(ctx,String(result.overallScore),1090,410,88,"#ffffff",950);
