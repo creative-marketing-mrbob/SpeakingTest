@@ -68,6 +68,13 @@
       gap: 10px;
       font-weight: 800;
       letter-spacing: 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .brand:focus-visible {
+      outline: 3px solid rgba(31, 92, 255, .22);
+      outline-offset: 5px;
+      border-radius: 10px;
     }
     .mark {
       width: 32px;
@@ -1144,11 +1151,15 @@
       text-align: center;
       box-shadow: 0 18px 60px rgba(17,24,39,.14);
     }
-    .loading-box #scoringText {
-      margin: 8px auto 14px;
-      max-width: 250px;
-      font-size: 14px;
-      line-height: 1.35;
+    .loading-box #scoringTip {
+      margin: 16px auto 0;
+      max-width: 260px;
+      color: var(--muted);
+      opacity: .95;
+      font-size: 13px;
+      font-style: italic;
+      line-height: 1.42;
+      transition: opacity .2s ease;
     }
     .spinner {
       width: 36px;
@@ -1662,13 +1673,32 @@
     }
 
     .record-card {
+      --coach-bg: #F4F8FF;
+      --coach-card: #FFFFFF;
+      --coach-primary: #2563FF;
+      --coach-secondary: #1D9BFF;
+      --coach-navy: #071B46;
+      --coach-surface: #EAF2FF;
+      --coach-border: #D7E4FF;
+      --coach-muted: #64748B;
+      --coach-disabled: #E5E7EB;
       display: grid;
-      gap: 12px;
+      gap: 18px;
       margin-top: 0;
-      padding: 0;
-      border: 0;
-      border-radius: 0;
-      background: transparent;
+      padding: 20px;
+      border: 1px solid var(--coach-border);
+      border-radius: 24px;
+      background:
+        linear-gradient(180deg, rgba(244,248,255,.92), rgba(255,255,255,.98)),
+        var(--coach-card);
+      box-shadow: 0 18px 42px rgba(7,27,70,.08);
+      transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+      max-width: 480px;
+      width: 100%;
+    }
+    .record-card.is-recording {
+      border-color: rgba(37,99,255,.42);
+      box-shadow: 0 22px 52px rgba(37,99,255,.14);
     }
     .answer-panel {
       display: grid;
@@ -1676,23 +1706,233 @@
       margin-top: 16px;
     }
     .answer-panel-title {
+      display: none;
       color: var(--blue-dark);
       font-size: 24px;
       font-weight: 950;
     }
-    .record-status {
+    .coach-head {
       display: flex;
       justify-content: space-between;
       gap: 12px;
       align-items: center;
-      padding: 12px;
-      border-radius: 8px;
-      color: var(--blue-dark);
-      background: var(--blue-soft);
-      font-weight: 900;
     }
-    .record-status small { color: var(--muted); font-weight: 800; }
-    .record-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .coach-title {
+      margin: 0;
+      color: var(--coach-navy);
+      font-size: 22px;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+    .coach-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: var(--coach-primary);
+      background: var(--coach-surface);
+      border: 1px solid var(--coach-border);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .coach-pulse {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--coach-primary);
+      box-shadow: 0 0 0 0 rgba(37,99,255,.42);
+      animation: coachPulse 1.3s ease-out infinite;
+    }
+    @keyframes coachPulse {
+      0% { box-shadow: 0 0 0 0 rgba(37,99,255,.42); }
+      70% { box-shadow: 0 0 0 9px rgba(37,99,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(37,99,255,0); }
+    }
+    .coach-body {
+      display: grid;
+      justify-items: center;
+      gap: 14px;
+      text-align: center;
+    }
+    .coach-mic {
+      width: 76px;
+      height: 76px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      color: var(--coach-primary);
+      background: linear-gradient(180deg, #f7fbff, var(--coach-surface));
+      border: 1px solid var(--coach-border);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 14px 28px rgba(37,99,255,.12);
+    }
+    .coach-mic svg { width: 34px; height: 34px; }
+    .coach-helper {
+      margin: 0;
+      max-width: 330px;
+      color: var(--coach-muted);
+      font-size: 14px;
+      line-height: 1.5;
+      font-weight: 650;
+    }
+    .coach-timer {
+      color: var(--coach-navy);
+      font-size: 42px;
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: .01em;
+      font-variant-numeric: tabular-nums;
+    }
+    .coach-wave {
+      width: 100%;
+      height: 58px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 5px;
+      padding: 0 14px 10px;
+      border-radius: 18px;
+      background: #f8fbff;
+      border: 1px solid var(--coach-border);
+      overflow: hidden;
+    }
+    .coach-wave span {
+      width: 6px;
+      height: calc(var(--h, 18) * 1px);
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--coach-secondary), var(--coach-primary));
+      opacity: .28;
+      transition: height .2s ease, opacity .2s ease;
+    }
+    .coach-wave:not(.is-active) span {
+      height: 3px !important;
+    }
+    .coach-wave.is-active span {
+      opacity: .92;
+    }
+    .record-actions { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .record-actions.two { grid-template-columns: 1fr 1fr; }
+    .coach-btn {
+      min-height: 52px;
+      border: 0;
+      border-radius: 999px;
+      padding: 13px 18px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--coach-primary), var(--coach-secondary));
+      box-shadow: 0 14px 28px rgba(37,99,255,.22);
+      font-weight: 950;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+    .coach-btn:hover { transform: translateY(-1px); box-shadow: 0 17px 32px rgba(37,99,255,.26); }
+    .coach-btn:active { transform: translateY(1px) scale(.99); }
+    .coach-btn svg { width: 19px; height: 19px; }
+    .coach-btn.secondary {
+      color: var(--coach-primary);
+      background: var(--coach-card);
+      border: 1px solid var(--coach-border);
+      box-shadow: none;
+    }
+    .coach-btn.secondary:hover { background: var(--coach-surface); box-shadow: none; }
+    .coach-btn:disabled {
+      color: var(--coach-muted);
+      background: var(--coach-disabled);
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .coach-audio {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 46px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 18px;
+      background: var(--coach-surface);
+      border: 1px solid var(--coach-border);
+    }
+    .coach-play {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 999px;
+      color: #fff;
+      background: var(--coach-primary);
+      box-shadow: 0 10px 20px rgba(37,99,255,.18);
+    }
+    .coach-mini-wave {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+    }
+    .coach-mini-wave span {
+      flex: 1;
+      min-width: 3px;
+      max-width: 9px;
+      height: calc(var(--h, 12) * 1px);
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--coach-secondary), var(--coach-primary));
+      opacity: .72;
+    }
+    .coach-mini-wave.is-playing span {
+      animation: coachMiniWave .9s ease-in-out infinite;
+      animation-delay: calc(var(--i, 0) * -55ms);
+    }
+    @keyframes coachMiniWave {
+      0%, 100% { transform: scaleY(.7); opacity: .6; }
+      50% { transform: scaleY(1.12); opacity: 1; }
+    }
+    .coach-duration {
+      color: var(--coach-navy);
+      font-size: 13px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .coach-native-audio {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .coach-info {
+      width: 100%;
+      margin: 0;
+      color: var(--coach-muted);
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 750;
+      text-align: center;
+    }
+    .coach-note {
+      margin: -2px 0 0;
+      padding: 12px 14px;
+      border-radius: 16px;
+      color: var(--coach-muted);
+      background: #f8fbff;
+      border: 1px solid var(--coach-border);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+    .coach-note strong { color: var(--coach-navy); }
+    @media (max-width: 380px) {
+      .record-card { padding: 16px; border-radius: 20px; }
+      .coach-title { font-size: 20px; }
+      .coach-timer { font-size: 38px; }
+      .record-actions.two { grid-template-columns: 1fr; }
+      .coach-audio { grid-template-columns: 42px 1fr auto; gap: 9px; }
+    }
     .audio-empty { padding: 13px; border: 1px dashed #c9d7ef; border-radius: 8px; color: var(--muted); background: var(--white); font-size: 13px; text-align: center; }
     audio { width: 100%; }
     .speaking-tip { margin-top: 14px; padding: 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--soft); color: var(--muted); font-size: 13px; line-height: 1.45; }
@@ -1952,18 +2192,19 @@
       display: grid;
       gap: 12px;
       margin: 16px 0;
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--soft);
+      padding: 16px;
+      border: 1px solid #D7E4FF;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #F8FBFF, #FFFFFF);
+      box-shadow: 0 16px 36px rgba(7, 27, 70, .07);
     }
     .mic-meter {
       width: 100%;
       height: 86px;
       display: block;
-      border-radius: 8px;
+      border-radius: 18px;
       background: #ffffff;
-      border: 1px solid #d7eadf;
+      border: 1px solid #D7E4FF;
     }
     .mic-volume-row {
       display: grid;
@@ -1987,6 +2228,17 @@
       gap: 10px;
       margin-top: 12px;
     }
+    #screenMic #micSampleBtn {
+      color: #fff;
+      background: linear-gradient(135deg, #2563FF, #1D9BFF);
+      box-shadow: 0 14px 28px rgba(37,99,255,.18);
+    }
+    #screenMic #micSampleBtn.secondary {
+      color: #2563FF;
+      background: #FFFFFF;
+      border-color: #D7E4FF;
+      box-shadow: none;
+    }
     .mic-sample-box { margin-top: 12px; }
     .mic-readiness {
       display: grid;
@@ -1999,6 +2251,258 @@
       line-height: 1.45;
     }
     .mic-readiness img { width: 22px; height: 22px; object-fit: contain; }
+    .mic-coach-panel {
+      padding: 18px;
+      background: #ffffff;
+    }
+    .mic-coach-card {
+      margin: 0 auto;
+    }
+    .mic-coach-card .mic-meter-wrap {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .mic-live-wave {
+      height: 58px;
+      padding: 0 14px 10px;
+    }
+    .mic-status-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border: 1px solid #D7E4FF;
+      border-radius: 16px;
+      background: #EAF2FF;
+      color: #071B46;
+      font-weight: 850;
+      line-height: 1.35;
+    }
+    .mic-status-line small {
+      color: #64748B;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .mic-settings-panel {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid #D7E4FF;
+      border-radius: 18px;
+      background: #F8FBFF;
+    }
+    .mic-coach-card audio {
+      width: 100%;
+      min-height: 42px;
+    }
+    #screenMic .test-head {
+      padding: 24px 24px 26px;
+      margin-bottom: 18px;
+      border-radius: 20px;
+      border-color: #D7E4FF;
+      box-shadow: 0 14px 34px rgba(7,27,70,.06);
+    }
+    #screenMic .section-tag {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #EAF2FF;
+      color: #2563FF;
+      border: 0;
+      font-size: 13px;
+      font-weight: 950;
+    }
+    #screenMic .question-text {
+      margin: 20px 0 8px;
+      font-size: 34px;
+      line-height: 1.05;
+      color: #071B46;
+    }
+    #screenMic .question-count {
+      font-size: 20px;
+      line-height: 1.15;
+      color: #071B46;
+    }
+    #screenMic .question-count span {
+      color: #2563FF;
+    }
+    #screenMic .question-progress {
+      width: 176px;
+      height: 7px;
+      margin-top: 10px;
+      background: #E5E7EB;
+    }
+    #screenMic .question-panel {
+      padding: 18px;
+      border-radius: 22px;
+      border-color: #D7E4FF;
+      box-shadow: 0 14px 34px rgba(7,27,70,.06);
+    }
+    #screenMic .mic-coach-panel {
+      margin-top: 0;
+    }
+    #screenMic .mic-coach-card {
+      max-width: 480px;
+      width: 100%;
+      padding: 18px;
+      gap: 14px;
+    }
+    #screenMic .coach-head {
+      align-items: center;
+      display: flex;
+    }
+    #screenMic .coach-title {
+      font-size: 22px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #screenMic .coach-pill {
+      min-height: 34px;
+      padding: 8px 13px;
+      font-size: 12px;
+    }
+    #screenMic .coach-body {
+      gap: 14px;
+      padding-top: 0;
+    }
+    #screenMic .coach-mic {
+      width: 76px;
+      height: 76px;
+    }
+    #screenMic .coach-helper { display: none; }
+    #screenMic .coach-timer { font-size: 42px; }
+    #screenMic .coach-wave { height: 58px; }
+    #screenMic .mic-settings-panel {
+      gap: 9px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+    #screenMic .mic-settings-panel label {
+      color: #071B46;
+      font-size: 13px;
+      font-weight: 950;
+    }
+    #screenMic .mic-settings-panel select {
+      min-height: 48px;
+      border-radius: 12px;
+    }
+    #screenMic .mic-volume-row {
+      margin-top: 2px;
+      padding: 12px 14px;
+      border: 1px solid #D7E4FF;
+      border-radius: 16px;
+      background: #F8FBFF;
+    }
+    #screenMic .mic-settings-panel label[for="micGain"] {
+      margin-top: 2px;
+    }
+    #screenMic .mic-volume-row input {
+      min-height: 32px;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      accent-color: #2563FF;
+    }
+    #screenMic .mic-volume-row input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      min-height: 8px;
+      background: linear-gradient(90deg, #2563FF 0%, #2563FF var(--gain-fill, 43%), #E5E7EB var(--gain-fill, 43%), #E5E7EB 100%);
+      outline: 0;
+    }
+    #screenMic .mic-volume-row input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 3px solid #FFFFFF;
+      border-radius: 999px;
+      background: #2563FF;
+      box-shadow: 0 5px 14px rgba(37,99,255,.24);
+    }
+    #screenMic .mic-volume-row input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border: 3px solid #FFFFFF;
+      border-radius: 999px;
+      background: #2563FF;
+      box-shadow: 0 5px 14px rgba(37,99,255,.24);
+    }
+    #screenMic .mic-status-line {
+      display: none;
+    }
+    #screenMic .mic-check-actions {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 0;
+    }
+    #screenMic #clearMicSampleBtn { display: none; }
+    #screenMic .coach-btn {
+      min-height: 52px;
+      border-radius: 999px;
+      font-size: 15px;
+    }
+    #screenMic .mic-sample-box {
+      margin-top: 0;
+      min-width: 0;
+      overflow: hidden;
+    }
+    #screenMic .coach-audio {
+      min-width: 0;
+      grid-template-columns: 44px minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+    #screenMic .coach-duration {
+      white-space: nowrap;
+      font-size: 12px;
+    }
+    #screenMic .coach-note {
+      margin-top: 0;
+      border-radius: 16px;
+      background: #F8FBFF;
+    }
+    #screenMic .nav {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: .78fr 1.22fr;
+      gap: 12px;
+    }
+    #screenMic .nav .btn {
+      min-height: 58px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 950;
+    }
+    #screenMic .nav .btn.ghost {
+      color: #071B46;
+      background: #FFFFFF;
+      border: 1px solid #D7E4FF;
+      box-shadow: 0 12px 26px rgba(7,27,70,.05);
+    }
+    #screenMic .nav .btn:not(.ghost) {
+      background: linear-gradient(135deg, #2563FF, #1D9BFF);
+      box-shadow: 0 16px 30px rgba(37,99,255,.18);
+    }
+    #screenTest > .nav {
+      display: none;
+    }
+    @media (max-width: 380px) {
+      #screenMic .question-text { font-size: 30px; }
+      #screenMic .mic-coach-card { padding: 20px; }
+      #screenMic .coach-title { font-size: 22px; }
+      #screenMic .coach-timer { font-size: 42px; }
+      #screenMic .nav { grid-template-columns: 1fr; }
+    }
 
     .photo-upload-card {
       display: grid;
@@ -2086,6 +2590,7 @@
       grid-template-columns: 112px 1fr;
       gap: 18px;
       align-items: center;
+      margin-top: 18px;
       margin-bottom: 16px;
       padding: 18px;
       border: 1px solid var(--line);
@@ -2385,7 +2890,7 @@
 <body>
   <div class="app">
     <header class="topbar">
-      <div class="brand"><span class="mark"><img src="icon/logo-mrbob.png" alt="Mr. Bob"></span><span>Check Your English Level</span></div>
+      <div class="brand" id="homeHeader" role="button" tabindex="0" aria-label="Kembali ke halaman pendaftaran"><span class="mark"><img src="icon/logo-mrbob.png" alt="Mr. Bob"></span><span>Check Your English Level</span></div>
       <div class="pill" id="topStatus">Gratis</div>
     </header>
 
@@ -2449,28 +2954,29 @@
           <div class="question-count">Step <span>sebelum mulai test</span></div>
           <div class="progress question-progress"><span style="width:12%"></span></div>
         </div>
-        <div class="panel question-panel">
-          <div class="question-prompt">Coba bicara beberapa detik. Pastikan grafik audionya bergerak dan sample recording terdengar jelas.</div>
-          <div class="mic-meter-wrap">
-            <canvas class="mic-meter" id="micMeter" width="440" height="86"></canvas>
-            <label for="micDevice">Pilih microphone</label>
-            <select id="micDevice"></select>
-            <label for="micGain">Input volume</label>
-            <div class="mic-volume-row">
-              <input id="micGain" type="range" min="40" max="180" value="100">
-              <strong id="micGainValue">100%</strong>
+        <div class="panel question-panel answer-panel mic-coach-panel">
+          <div class="record-card is-ready mic-coach-card">
+            <div class="coach-head"><h3 class="coach-title">Cek Microphone</h3><span class="coach-pill" id="micStatusPill">Siap Dicek</span></div>
+            <div class="coach-body">
+              <div class="coach-wave mic-live-wave" id="micMeter" aria-hidden="true"></div>
             </div>
+            <div class="mic-settings-panel">
+              <label for="micDevice">Pilih microphone</label>
+              <select id="micDevice"></select>
+              <label for="micGain">Audio adjust meter</label>
+              <div class="mic-volume-row">
+                <input id="micGain" type="range" min="40" max="180" value="100">
+                <strong id="micGainValue">100%</strong>
+              </div>
+            </div>
+            <div class="mic-status-line"><span id="micCheckStatus">Microphone siap dicek</span><small id="micCheckDuration">0s</small></div>
+            <div class="record-actions mic-check-actions">
+              <button class="coach-btn" id="micSampleBtn" type="button">Rekam Sample</button>
+              <button class="coach-btn secondary" id="clearMicSampleBtn" type="button">Hapus Sample</button>
+            </div>
+            <div class="mic-sample-box" id="micSampleBox"></div>
+            <div class="coach-note"><strong>Tips Coach:</strong> Atur audio adjust meter sampai waveform terlihat jelas saat kamu bicara, tapi tidak terlalu penuh.</div>
           </div>
-          <div class="record-status">
-            <span id="micCheckStatus">Microphone siap dicek</span>
-            <small id="micCheckDuration">0s</small>
-          </div>
-          <div class="mic-check-actions">
-            <button class="btn red" id="micSampleBtn" type="button">Rekam Sample</button>
-            <button class="btn ghost" id="clearMicSampleBtn" type="button">Hapus Sample</button>
-          </div>
-          <div class="mic-sample-box" id="micSampleBox"><div class="audio-empty">Sample audio akan muncul di sini. Dengarkan dulu sebelum mulai test.</div></div>
-          <div class="mic-readiness"><img src="icon/headphones.png" alt=""><span>Kalau grafik terlalu kecil, naikkan input volume. Kalau pecah/terlalu keras, turunkan input volume.</span></div>
         </div>
         <div class="nav">
           <button class="btn ghost" id="backToFormBtn" type="button">← Kembali</button>
@@ -2532,7 +3038,7 @@
   </div>
   <div class="story-wrap"><canvas id="storyCanvas" width="1080" height="1920"></canvas></div>
   <div class="pdf-report" id="pdfReport" aria-hidden="true"></div>
-  <div class="loading" id="loading"><div class="loading-box"><div class="spinner"></div><strong id="scoringTitle">Yeayyy good job!<br>You have completed the test.</strong><p id="scoringText">Tunggu dulu yaa kami sedang menilai jawabanmu nih dan langsung kami kasih feedback.</p><div class="scoring-progress"><span id="scoringBar"></span></div><p><strong id="scoringPercent">8%</strong> selesai</p><p id="scoringEta">Estimasi tersisa sekitar 45 detik.</p></div></div>
+  <div class="loading" id="loading"><div class="loading-box"><div class="spinner"></div><strong id="scoringTitle">Yeayyy good job!<br>You have completed the test.</strong><div class="scoring-progress"><span id="scoringBar"></span></div><p><strong id="scoringPercent">8%</strong> selesai</p><p id="scoringTip"></p></div></div>
 
   <script>
     const CONFIG = {
@@ -2558,11 +3064,30 @@
       vocabulary: "Variasi dan ketepatan pilihan kata.",
       communicationStrategy: "Cara menjaga jawaban tetap nyambung walau belum sempurna."
     };
+    const SCORING_TIPS = [
+      "Bicaralah dengan tempo yang tenang. Yang paling penting adalah jawabanmu jelas dan mudah dipahami.",
+      "Jika salah mengucapkan kata, tidak perlu mengulang dari awal. Lanjutkan saja agar alur bicaramu tetap terjaga.",
+      "Kurangi filler seperti “eee” atau “hmm”. Lebih baik berhenti sebentar, lalu lanjutkan kalimatmu.",
+      "Usahakan jangan menjawab terlalu pendek. Tambahkan alasan, contoh, atau detail sederhana.",
+      "Kalau lupa satu kata dalam bahasa Inggris, gunakan kata lain yang lebih mudah untuk menjelaskan maksudmu.",
+      "Hindari menerjemahkan langsung dari bahasa Indonesia. Gunakan kalimat bahasa Inggris yang sederhana dan natural.",
+      "Perhatikan akhiran kata seperti -s, -ed, dan -ing, karena bagian ini sering terlewat saat berbicara.",
+      "Saat mendeskripsikan gambar, mulai dari hal yang paling terlihat: siapa orangnya, di mana tempatnya, dan apa aktivitasnya.",
+      "Untuk pertanyaan opini, susun jawabanmu dengan pola sederhana: pendapat, alasan, lalu contoh.",
+      "Jika grammar belum sempurna, tetap fokus agar ide utama tersampaikan dengan jelas.",
+      "Sebelum mulai berbicara, ambil napas sebentar supaya jawabanmu lebih tenang dan tidak terburu-buru.",
+      "Gunakan kata penghubung sederhana seperti because, and, but, dan so agar jawabanmu lebih rapi.",
+      "Saat self introduction, jangan hanya menyebut nama. Tambahkan asal, aktivitas, tujuan, atau alasan belajar bahasa Inggris.",
+      "Untuk read aloud, jangan hanya membaca cepat. Perhatikan pelafalan, jeda, dan intonasi.",
+      "Jawaban yang baik bukan berarti harus sempurna, tetapi harus jelas, nyambung, dan berani disampaikan."
+    ];
     const STORAGE_KEY = "mrBobSpeakingPlacementState:v2";
-    const state = { user:null, index:0, answers:{}, selectedDeviceId:"", rawStream:null, stream:null, audioContext:null, gainNode:null, analyser:null, meterAnimation:null, recorder:null, chunks:[], isRecording:false, currentRecordingTaskId:"", pendingRecordingSave:null, sampleRecorder:null, sampleChunks:[], sampleUrl:null, isSampleRecording:false, sampleStartedAt:0, sampleTimer:null, recordStartedAt:0, recordTimer:null, remainingSeconds:720, timerInterval:null, scoringTimer:null, result:null };
+    const state = { user:null, index:0, answers:{}, selectedDeviceId:"", rawStream:null, stream:null, audioContext:null, gainNode:null, analyser:null, meterAnimation:null, recorder:null, chunks:[], isRecording:false, currentRecordingTaskId:"", pendingRecordingSave:null, sampleRecorder:null, sampleChunks:[], sampleUrl:null, isSampleRecording:false, sampleStartedAt:0, sampleTimer:null, recordStartedAt:0, recordTimer:null, remainingSeconds:720, timerInterval:null, scoringTimer:null, scoringTipTimer:null, result:null };
     let isRestoringState = false;
     const $ = (id) => document.getElementById(id);
     const screens = ["screenStart","screenMic","screenTest","screenReview","screenResult"];
+    $("homeHeader").addEventListener("click", goToLandingPage);
+    $("homeHeader").addEventListener("keydown", event => {if(event.key==="Enter"||event.key===" "){event.preventDefault();goToLandingPage();}});
     $("startLandingBtn").addEventListener("click", () => $("leadForm").scrollIntoView({ behavior:"smooth", block:"start" }));
     $("resultPhoto").addEventListener("change", previewResultPhoto);
     $("leadForm").addEventListener("submit", startTest);
@@ -2585,6 +3110,7 @@
     toggleFollowersField();
     window.addEventListener("beforeunload", saveAppState);
     restoreSavedState();
+    async function goToLandingPage(){stopAllAudio();if(state.isRecording)await stopRecording();if(state.pendingRecordingSave)await state.pendingRecordingSave;if(state.isSampleRecording)stopSampleRecording();stopTimer();stopStream();show("screenStart");}
     async function startTest(event){event.preventDefault();if(location.protocol==="file:"){alert("Untuk microphone dan playback audio, buka halaman lewat localhost/HTTPS, bukan langsung file://. Contoh: http://127.0.0.1:4178/index-speaking.html");return;}if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){alert("Browser ini belum support rekaman audio. Coba buka dengan Chrome, Edge, atau Safari versi terbaru lewat HTTPS/localhost.");return;}const form=new FormData(event.currentTarget);const name=String(form.get("name")||"").trim();if(name.split(/\s+/).length<2){alert("Isi nama lengkap minimal dua kata ya.");return;}clearSavedState(false);state.user={name,whatsapp:normalizePhone(form.get("whatsapp")),instagram:normalizeInstagram(form.get("instagram")),instagramFollowers:String(form.get("instagramFollowers")||"").trim(),age:Number(form.get("age")||0),status:String(form.get("status")||""),photoDataUrl:""};state.answers={};state.result=null;try{await openMicStream();await populateMicDevices();}catch(error){alert("Microphone belum bisa diakses. Izinkan microphone di browser, lalu coba lagi.");return;}state.index=0;show("screenMic");startMicMeter();}
     async function previewResultPhoto(event){const file=event.target.files?.[0];if(!file)return;const dataUrl=await cropImageFileToSquareDataUrl(file);state.user={...(state.user||{}),photoDataUrl:dataUrl};$("certPhoto").src=getProfilePhoto();saveAppState();}
     function fileToDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||""));reader.onerror=reject;reader.readAsDataURL(file);});}
@@ -2592,33 +3118,45 @@
     function micConstraints(){return{audio:{deviceId:state.selectedDeviceId?{exact:state.selectedDeviceId}:undefined,echoCancellation:false,noiseSuppression:false,autoGainControl:false}};}
     async function openMicStream(){if(state.rawStream)state.rawStream.getTracks().forEach(track=>track.stop());state.rawStream=await navigator.mediaDevices.getUserMedia(micConstraints());setupAudioPipeline();}
     async function ensureMicReadyForRecording(){const live=state.stream?.getAudioTracks?.().some(track=>track.readyState==="live")||state.rawStream?.getAudioTracks?.().some(track=>track.readyState==="live");if(live)return;await openMicStream();await populateMicDevices();}
-    async function populateMicDevices(){const devices=await navigator.mediaDevices.enumerateDevices();const inputs=devices.filter(device=>device.kind==="audioinput");const currentTrack=state.rawStream?.getAudioTracks?.()[0];const currentLabel=currentTrack?.label||"";$("micDevice").innerHTML=inputs.map((device,index)=>`<option value="${escapeHtml(device.deviceId)}">${escapeHtml(device.label||`Microphone ${index+1}`)}</option>`).join("");const matched=inputs.find(device=>device.label&&device.label===currentLabel)||inputs.find(device=>device.deviceId===state.selectedDeviceId)||inputs[0];if(matched){state.selectedDeviceId=matched.deviceId;$("micDevice").value=matched.deviceId;}$("micCheckStatus").textContent=currentLabel?`Mic aktif: ${currentLabel}`:"Microphone siap dicek";}
-    async function changeMicDevice(){state.selectedDeviceId=$("micDevice").value;try{await openMicStream();startMicMeter();const label=state.rawStream?.getAudioTracks?.()[0]?.label;$("micCheckStatus").textContent=label?`Mic aktif: ${label}`:"Microphone siap dicek";}catch(error){alert("Microphone ini belum bisa dipakai. Coba pilih device lain atau cek permission browser.");}}
+    async function populateMicDevices(){const devices=await navigator.mediaDevices.enumerateDevices();const inputs=devices.filter(device=>device.kind==="audioinput");const currentTrack=state.rawStream?.getAudioTracks?.()[0];const currentLabel=currentTrack?.label||"";$("micDevice").innerHTML=inputs.map((device,index)=>`<option value="${escapeHtml(device.deviceId)}">${escapeHtml(device.label||`Microphone ${index+1}`)}</option>`).join("");const matched=inputs.find(device=>device.label&&device.label===currentLabel)||inputs.find(device=>device.deviceId===state.selectedDeviceId)||inputs[0];if(matched){state.selectedDeviceId=matched.deviceId;$("micDevice").value=matched.deviceId;}$("micCheckStatus").textContent=currentLabel?`Mic aktif: ${currentLabel}`:"Microphone siap dicek";setMicPill("Siap Dicek");setMicCardState("ready");}
+    async function changeMicDevice(){state.selectedDeviceId=$("micDevice").value;try{await openMicStream();startMicMeter();const label=state.rawStream?.getAudioTracks?.()[0]?.label;$("micCheckStatus").textContent=label?`Mic aktif: ${label}`:"Microphone siap dicek";setMicPill("Siap Dicek");setMicCardState("ready");}catch(error){alert("Microphone ini belum bisa dipakai. Coba pilih device lain atau cek permission browser.");}}
     function setupAudioPipeline(){state.audioContext=new (window.AudioContext||window.webkitAudioContext)();const source=state.audioContext.createMediaStreamSource(state.rawStream);state.gainNode=state.audioContext.createGain();state.analyser=state.audioContext.createAnalyser();state.analyser.fftSize=1024;state.analyser.smoothingTimeConstant=.58;const destination=state.audioContext.createMediaStreamDestination();source.connect(state.gainNode);state.gainNode.connect(state.analyser);state.gainNode.connect(destination);state.stream=destination.stream;updateMicGain();}
-    function updateMicGain(){const slider=$("micGain");const value=Number(slider?.value||100);if(state.gainNode)state.gainNode.gain.value=value/100;$("micGainValue").textContent=`${value}%`;}
-    async function startMicMeter(){if(state.audioContext?.state==="suspended")await state.audioContext.resume();const canvas=$("micMeter");const ctx=canvas.getContext("2d");const data=new Uint8Array(state.analyser.fftSize);let peak=0;cancelAnimationFrame(state.meterAnimation);const draw=()=>{state.analyser.getByteTimeDomainData(data);let sum=0;for(let i=0;i<data.length;i++){const value=(data[i]-128)/128;sum+=value*value;}const rms=Math.sqrt(sum/data.length);const level=Math.min(1,rms*14);peak=Math.max(level,peak*.9);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);const bars=30;const gap=4;const barWidth=(canvas.width-(bars-1)*gap)/bars;for(let i=0;i<bars;i++){const threshold=i/(bars-1);const active=threshold<=peak;const softness=Math.max(.2,1-Math.abs(threshold-level)*1.6);const height=active?Math.max(8,(canvas.height-18)*softness*Math.max(.18,peak)):7;const x=i*(barWidth+gap);const y=canvas.height-height-9;ctx.fillStyle=active?(level>.72?"#13a382":"#22c55e"):"#b8f3ca";ctx.beginPath();ctx.roundRect(x+1,y,barWidth-2,height,5);ctx.fill();}const label=state.rawStream?.getAudioTracks?.()[0]?.label||"Microphone";$("micCheckStatus").textContent=level>.015?`${label}: input terdeteksi`:`${label}: belum ada suara terdeteksi`;state.meterAnimation=requestAnimationFrame(draw);};draw();}
+    function updateMicGain(){const slider=$("micGain");const value=Number(slider?.value||100);if(state.gainNode)state.gainNode.gain.value=value/100;if(slider){const min=Number(slider.min||40);const max=Number(slider.max||180);const fill=((value-min)/(max-min))*100;slider.style.setProperty("--gain-fill",`${Math.max(0,Math.min(100,fill))}%`);}$("micGainValue").textContent=`${value}%`;}
+    async function startMicMeter(){if(state.audioContext?.state==="suspended")await state.audioContext.resume();const wave=$("micMeter");if(wave&&!wave.children.length)wave.innerHTML=coachWaveform(18);cancelAnimationFrame(state.meterAnimation);const draw=()=>{const level=getInputLevel();updateMicCheckWave(level);const label=state.rawStream?.getAudioTracks?.()[0]?.label||"Microphone";$("micCheckStatus").textContent=level>.008?`${label}: input terdeteksi`:`${label}: belum ada suara terdeteksi`;if(!state.isSampleRecording&&!state.sampleUrl)setMicPill(level>.008?"Input Terdeteksi":"Siap Dicek");state.meterAnimation=requestAnimationFrame(draw);};draw();}
     function beginSpeakingTasks(){stopAllAudio();if(state.isSampleRecording)stopSampleRecording();if(state.audioContext?.state==="suspended")state.audioContext.resume();state.index=0;show("screenTest");startTimer();renderTask();saveAppState();}
-    function toggleSampleRecording(){if(state.isSampleRecording){stopSampleRecording();return;}state.sampleChunks=[];const mimeType=getSupportedMimeType();state.sampleRecorder=new MediaRecorder(getRecordingStream(),mimeType?{mimeType}:undefined);state.sampleRecorder.addEventListener("dataavailable",event=>{if(event.data&&event.data.size)state.sampleChunks.push(event.data);});state.sampleRecorder.addEventListener("stop",saveMicSample);state.sampleStartedAt=Date.now();state.isSampleRecording=true;state.sampleRecorder.start();$("micSampleBtn").textContent="Stop Sample";$("micCheckStatus").textContent="Sedang merekam sample...";state.sampleTimer=setInterval(updateSampleStatus,500);}
-    function stopSampleRecording(){if(!state.sampleRecorder||state.sampleRecorder.state==="inactive")return;state.sampleRecorder.stop();state.isSampleRecording=false;clearInterval(state.sampleTimer);$("micSampleBtn").textContent="Rekam Sample";}
-    function updateSampleStatus(){if(!state.isSampleRecording)return;const seconds=Math.round((Date.now()-state.sampleStartedAt)/1000);$("micCheckDuration").textContent=`${seconds}s`;}
-    function saveMicSample(){const blob=new Blob(state.sampleChunks,{type:state.sampleRecorder.mimeType||"audio/webm"});if(state.sampleUrl)URL.revokeObjectURL(state.sampleUrl);state.sampleUrl=URL.createObjectURL(blob);$("micSampleBox").innerHTML=`<audio controls src="${state.sampleUrl}"></audio>`;$("micCheckStatus").textContent="Sample tersimpan. Dengarkan dulu sebelum mulai.";const duration=Math.round((Date.now()-state.sampleStartedAt)/1000);$("micCheckDuration").textContent=`${duration}s`;}
-    function clearMicSample(){if(state.isSampleRecording)stopSampleRecording();if(state.sampleUrl)URL.revokeObjectURL(state.sampleUrl);state.sampleUrl=null;$("micSampleBox").innerHTML=`<div class="audio-empty">Sample audio akan muncul di sini. Dengarkan dulu sebelum mulai test.</div>`;$("micCheckStatus").textContent="Microphone siap dicek";$("micCheckDuration").textContent="0s";}
+    function toggleSampleRecording(){if(state.isSampleRecording){stopSampleRecording();return;}if(state.sampleUrl){URL.revokeObjectURL(state.sampleUrl);state.sampleUrl=null;$("micSampleBox").innerHTML="";}state.sampleChunks=[];const mimeType=getSupportedMimeType();state.sampleRecorder=new MediaRecorder(getRecordingStream(),mimeType?{mimeType}:undefined);state.sampleRecorder.addEventListener("dataavailable",event=>{if(event.data&&event.data.size)state.sampleChunks.push(event.data);});state.sampleRecorder.addEventListener("stop",saveMicSample);state.sampleStartedAt=Date.now();state.isSampleRecording=true;state.sampleRecorder.start();$("micSampleBtn").textContent="Stop Rekam";$("micSampleBtn").classList.add("secondary");setMicPill("Sedang Merekam",true);setMicCardState("recording");$("micCheckStatus").textContent="Sedang merekam sample...";state.sampleTimer=setInterval(updateSampleStatus,500);}
+    function stopSampleRecording(){if(!state.sampleRecorder||state.sampleRecorder.state==="inactive")return;state.sampleRecorder.stop();state.isSampleRecording=false;clearInterval(state.sampleTimer);$("micSampleBtn").textContent="Rekam Sample";$("micSampleBtn").classList.remove("secondary");}
+    function updateSampleStatus(){if(!state.isSampleRecording)return;const seconds=Math.round((Date.now()-state.sampleStartedAt)/1000);$("micCheckDuration").textContent=`${seconds}s`;const coachTimer=$("micCoachTimer");if(coachTimer)coachTimer.textContent=formatDuration(seconds);}
+    function saveMicSample(){const blob=new Blob(state.sampleChunks,{type:state.sampleRecorder.mimeType||"audio/webm"});if(state.sampleUrl)URL.revokeObjectURL(state.sampleUrl);state.sampleUrl=URL.createObjectURL(blob);const duration=Math.round((Date.now()-state.sampleStartedAt)/1000);$("micSampleBox").innerHTML=`<div class="coach-audio mic-sample-player"><button class="coach-play" id="micCoachPlayBtn" type="button" aria-label="Play sample">${coachIcon("play")}</button><div class="coach-mini-wave" id="micCoachMiniWave" aria-hidden="true">${coachWaveform(14)}</div><span class="coach-duration" id="micCoachDurationText">00:00 / ${formatDuration(duration)}</span><audio class="coach-native-audio" id="micCoachAudio" src="${state.sampleUrl}" preload="auto"></audio></div>`;$("micCoachPlayBtn")?.addEventListener("click",toggleMicSamplePlayback);$("micCheckStatus").textContent="Sample tersimpan. Dengarkan dulu sebelum mulai.";setMicPill("Sample Tersimpan");setMicCardState("saved");$("micSampleBtn").textContent="Rekam Ulang";$("micSampleBtn").classList.add("secondary");$("micCheckDuration").textContent=`${duration}s`;const coachTimer=$("micCoachTimer");if(coachTimer)coachTimer.textContent=formatDuration(duration);}
+    function clearMicSample(){if(state.isSampleRecording)stopSampleRecording();if(state.sampleUrl)URL.revokeObjectURL(state.sampleUrl);state.sampleUrl=null;$("micSampleBox").innerHTML="";$("micCheckStatus").textContent="Microphone siap dicek";$("micCheckDuration").textContent="0s";const coachTimer=$("micCoachTimer");if(coachTimer)coachTimer.textContent="00:00";$("micSampleBtn").textContent="Rekam Sample";$("micSampleBtn").classList.remove("secondary");const clearBtn=$("clearMicSampleBtn");if(clearBtn)clearBtn.style.display="none";setMicPill("Siap Dicek");setMicCardState("ready");}
+    function setMicPill(text,active=false){const pill=$("micStatusPill");if(pill)pill.innerHTML=`${active?'<span class="coach-pulse"></span>':""}${escapeHtml(text)}`;}
+    function setMicCardState(stateName){const card=document.querySelector(".mic-coach-card");if(!card)return;card.classList.toggle("is-recording",stateName==="recording");card.classList.toggle("is-saved",stateName==="saved");card.classList.toggle("is-ready",stateName==="ready");}
+    function toggleMicSamplePlayback(){const audio=$("micCoachAudio"),button=$("micCoachPlayBtn"),miniWave=$("micCoachMiniWave");if(!audio||!button)return;const update=()=>{const current=formatDuration(Math.floor(audio.currentTime||0));const total=formatDuration(Math.round(audio.duration||Number($("micCheckDuration")?.textContent?.replace(/\D/g,""))||0));const text=$("micCoachDurationText");if(text)text.textContent=`${current} / ${total}`;};if(audio.paused){if(audio.readyState===0)audio.load();audio.play().then(()=>{button.innerHTML=coachIcon("pause");miniWave?.classList.add("is-playing");update();}).catch(error=>{console.warn("Mic sample playback failed",error);audio.controls=true;audio.classList.remove("coach-native-audio");});audio.ontimeupdate=update;audio.onended=()=>{button.innerHTML=coachIcon("play");miniWave?.classList.remove("is-playing");update();};}else{audio.pause();button.innerHTML=coachIcon("play");miniWave?.classList.remove("is-playing");update();}}
     function renderTask(){stopAllAudio();const task=TASKS[state.index];const answer=state.answers[task.id];$("sectionTag").textContent=`Task ${state.index+1}`;$("questionText").textContent=task.title;$("questionCount").innerHTML=`Question <span>${state.index+1}/${TASKS.length}</span>`;$("progressBar").style.width=`${((state.index+1)/TASKS.length)*100}%`;$("promptText").innerHTML=renderPrompt(task);$("contextBox").innerHTML=`<div class="speaking-tip">${escapeHtml(task.tips)}</div>`;$("prevBtn").disabled=state.index===0;$("nextBtn").textContent=state.index===TASKS.length-1?"Review & Submit →":"Next →";renderAnswer(answer);window.scrollTo({top:0,behavior:"smooth"});}
     function renderPrompt(task){const picture=task.hasPicture?`<div class="picture-scene" aria-label="Ilustrasi soal"><img src="icon/ILUSTRASI SOAL.png" alt="Ilustrasi soal speaking"></div>`:"";const passage=task.hasPicture?"":`<div class="prompt-passage">${escapeHtml(task.passage||task.prompt)}</div>`;return`<div class="prompt-block"><div class="prompt-instruction">${escapeHtml(task.instruction||"Jawab prompt berikut dengan bahasa Inggris.")}</div>${picture}${passage}</div>`;}
-    function renderAnswer(answer){$("answerBox").innerHTML=`<div class="record-card"><div class="record-status"><span id="recordState">${answer?"Audio tersimpan":"Belum direkam"}</span><small id="durationText">${answer?`${answer.duration}s`:"0s"}</small></div><div id="audioBox">${answer?.url?`<audio controls src="${answer.url}"></audio>`:`<div class="audio-empty">Audio preview akan muncul setelah kamu selesai merekam.</div>`}</div><div class="record-actions"><button class="btn red" id="recordBtn" type="button">${answer?"Rekam Ulang":"Mulai Rekam"}</button><button class="btn ghost" id="clearBtn" type="button">Hapus Audio</button></div></div>`;$("recordBtn").addEventListener("click",toggleRecording);$("clearBtn").addEventListener("click",clearCurrentAudio);}
+    function renderAnswer(answer){const isCurrentRecording=state.isRecording&&state.currentRecordingTaskId===TASKS[state.index].id;const status=isCurrentRecording?"Sedang Merekam":answer?"Jawaban Tersimpan":"Siap Merekam";const timer=isCurrentRecording?formatDuration(Math.round((Date.now()-state.recordStartedAt)/1000)):answer?formatDuration(answer.duration):"00:00";$("answerBox").innerHTML=`<div class="record-card ${isCurrentRecording?"is-recording":answer?"is-saved":"is-ready"}"><div class="coach-head"><h3 class="coach-title">Jawaban Kamu</h3><span class="coach-pill">${isCurrentRecording?'<span class="coach-pulse"></span>':""}${status}</span></div><div class="coach-body"><div class="coach-timer" id="durationText">${timer}</div><div class="coach-wave ${isCurrentRecording?"is-active":""}" aria-hidden="true">${coachWaveform(18)}</div></div>${answer?`<div class="coach-audio"><button class="coach-play" id="coachPlayBtn" type="button" aria-label="Play audio">${coachIcon("play")}</button><div class="coach-mini-wave" id="coachMiniWave" aria-hidden="true">${coachWaveform(14)}</div><span class="coach-duration" id="coachDurationText">00:00 / ${formatDuration(answer.duration)}</span><audio class="coach-native-audio" id="coachAudio" src="${answer.url}" preload="auto"></audio></div>`:""}<div class="record-actions ${answer&&!isCurrentRecording?"two":""}">${answer&&!isCurrentRecording?`<button class="coach-btn secondary" id="clearBtn" type="button">Rekam Ulang</button><button class="coach-btn" id="coachNextBtn" type="button">Next Question</button>`:`<button class="coach-btn ${isCurrentRecording?"secondary":""}" id="recordBtn" type="button">${isCurrentRecording?"Stop Rekam":"Mulai Rekam"}</button>`}</div><p class="coach-note">${answer&&!isCurrentRecording?'<strong>Tips Coach:</strong> Dengarkan ulang jawabanmu sebelum lanjut.':'<strong>Tips:</strong> Baca santai, jangan terlalu cepat. Fokus pada clarity, rhythm, dan intonation.'}</p></div>`;const recordBtn=$("recordBtn");if(recordBtn)recordBtn.addEventListener("click",toggleRecording);const clearBtn=$("clearBtn");if(clearBtn)clearBtn.addEventListener("click",clearCurrentAudio);const nextBtn=$("coachNextBtn");if(nextBtn)nextBtn.addEventListener("click",nextTask);const playBtn=$("coachPlayBtn");if(playBtn)playBtn.addEventListener("click",toggleCoachPlayback);}
     async function toggleRecording(){if(state.isRecording){await stopRecording();return;}startActualRecording();}
-    async function startActualRecording(){try{await ensureMicReadyForRecording();}catch(error){alert("Microphone perlu diizinkan lagi setelah halaman direfresh. Izinkan microphone, lalu coba rekam lagi.");return;}const task=TASKS[state.index];state.chunks=[];state.currentRecordingTaskId=task.id;const mimeType=getSupportedMimeType();state.recorder=new MediaRecorder(getRecordingStream(),mimeType?{mimeType}:undefined);state.pendingRecordingSave=new Promise(resolve=>{state.recorder.addEventListener("stop",async()=>{await saveRecording(state.currentRecordingTaskId);resolve();},{once:true});});state.recorder.addEventListener("dataavailable",event=>{if(event.data&&event.data.size)state.chunks.push(event.data);});state.recordStartedAt=Date.now();state.isRecording=true;state.recorder.start();updateRecordStatus();state.recordTimer=setInterval(updateRecordStatus,500);}
+    async function startActualRecording(){try{await ensureMicReadyForRecording();}catch(error){alert("Microphone perlu diizinkan lagi setelah halaman direfresh. Izinkan microphone, lalu coba rekam lagi.");return;}const task=TASKS[state.index];state.chunks=[];state.currentRecordingTaskId=task.id;const mimeType=getSupportedMimeType();state.recorder=new MediaRecorder(getRecordingStream(),mimeType?{mimeType}:undefined);state.pendingRecordingSave=new Promise(resolve=>{state.recorder.addEventListener("stop",async()=>{await saveRecording(state.currentRecordingTaskId);resolve();},{once:true});});state.recorder.addEventListener("dataavailable",event=>{if(event.data&&event.data.size)state.chunks.push(event.data);});state.recordStartedAt=Date.now();state.isRecording=true;state.recorder.start();renderAnswer(null);updateRecordStatus();state.recordTimer=setInterval(updateRecordStatus,500);}
     function stopRecording(){if(!state.recorder||state.recorder.state==="inactive")return state.pendingRecordingSave||Promise.resolve();state.recorder.stop();state.isRecording=false;clearInterval(state.recordTimer);updateRecordStatus();return state.pendingRecordingSave||Promise.resolve();}
     async function saveRecording(taskId){const task=TASKS.find(item=>item.id===taskId);if(!task)return;const blob=new Blob(state.chunks,{type:state.recorder?.mimeType||"audio/webm"});const duration=Math.round((Date.now()-state.recordStartedAt)/1000);state.currentRecordingTaskId="";if(blob.size>CONFIG.maxAudioBytesPerTask){alert("Audio terlalu besar. Coba rekam lebih singkat atau gunakan tempat yang lebih tenang.");return;}const old=state.answers[task.id];if(old?.url)URL.revokeObjectURL(old.url);state.answers[task.id]={blob,url:URL.createObjectURL(blob),duration,mimeType:blob.type||"audio/webm",size:blob.size,dataUrl:await blobToDataUrl(blob)};if(TASKS[state.index]?.id===task.id)renderAnswer(state.answers[task.id]);saveAppState();}
     function clearCurrentAudio(){const task=TASKS[state.index];const answer=state.answers[task.id];if(answer?.url)URL.revokeObjectURL(answer.url);delete state.answers[task.id];renderAnswer(null);saveAppState();}
-    function updateRecordStatus(){const recordState=$("recordState"),durationText=$("durationText"),recordBtn=$("recordBtn");if(!recordState||!durationText||!recordBtn)return;if(state.isRecording){const seconds=Math.round((Date.now()-state.recordStartedAt)/1000);recordState.textContent="Sedang merekam...";durationText.textContent=`${seconds}s`;recordBtn.textContent="Stop Rekam";}}
+    function updateRecordStatus(){const durationText=$("durationText");if(!durationText)return;if(state.isRecording){const seconds=Math.round((Date.now()-state.recordStartedAt)/1000);durationText.textContent=formatDuration(seconds);updateCoachRecordingWave(getInputLevel());}}
+    function formatDuration(seconds){const safe=Math.max(0,Number(seconds)||0);const minutes=Math.floor(safe/60);const rest=Math.floor(safe%60);return`${String(minutes).padStart(2,"0")}:${String(rest).padStart(2,"0")}`;}
+    function getInputLevel(){if(!state.analyser)return 0;const data=new Uint8Array(state.analyser.fftSize);state.analyser.getByteTimeDomainData(data);let sum=0;for(let i=0;i<data.length;i++){const value=(data[i]-128)/128;sum+=value*value;}return Math.min(1,Math.sqrt(sum/data.length)*14);}
+    function updateCoachRecordingWave(level){const wave=document.querySelector("#answerBox .coach-wave.is-active");if(!wave)return;const bars=[...wave.querySelectorAll("span")];const active=level>.008;bars.forEach((bar,index)=>{const base=Number(bar.style.getPropertyValue("--h"))||20;const offset=.72+Math.abs(Math.sin((Date.now()/180)+(index*.85)))*.72;const height=active?Math.max(7,Math.min(29,base*level*3.3*offset)):3;bar.style.height=`${height}px`;bar.style.opacity=active?String(Math.min(1,.38+level*1.5)):".28";});}
+    function updateMicCheckWave(level){const wave=$("micMeter");if(!wave)return;const bars=[...wave.querySelectorAll("span")];const active=level>.008;wave.classList.toggle("is-active",active);bars.forEach((bar,index)=>{const base=Number(bar.style.getPropertyValue("--h"))||20;const offset=.7+Math.abs(Math.sin((Date.now()/190)+(index*.82)))*.75;const height=active?Math.max(7,Math.min(29,base*level*3.3*offset)):3;bar.style.height=`${height}px`;bar.style.opacity=active?String(Math.min(1,.38+level*1.5)):".28";});}
+    function updateCoachPlaybackTime(){const audio=$("coachAudio"),durationText=$("coachDurationText");if(!audio||!durationText)return;const total=Number.isFinite(audio.duration)?audio.duration:Number(state.answers[TASKS[state.index]?.id]?.duration||0);durationText.textContent=`${formatDuration(audio.currentTime||0)} / ${formatDuration(total)}`;}
+    function coachWaveform(count=18){const heights=[14,22,32,18,38,26,44,20,34,48,24,40,28,36,18,30,22,42];return Array.from({length:count},(_,index)=>`<span style="--i:${index};--h:${heights[index%heights.length]}"></span>`).join("");}
+    function coachIcon(type){const icons={mic:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 14.5a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v4.5a4 4 0 0 0 4 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M18.5 10.5a6.5 6.5 0 0 1-13 0M12 17v4M8.5 21h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 7.4v9.2c0 .8.9 1.3 1.6.8l7-4.6a1 1 0 0 0 0-1.6l-7-4.6A1 1 0 0 0 9 7.4Z" fill="currentColor"/></svg>',pause:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 6.5h3v11H8v-11Zm5 0h3v11h-3v-11Z" fill="currentColor"/></svg>',stop:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor"/></svg>',refresh:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.35-5.65M20 4v5h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',arrow:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'};return icons[type]||"";}
+    function toggleCoachPlayback(){const audio=$("coachAudio"),button=$("coachPlayBtn"),miniWave=$("coachMiniWave");if(!audio||!button)return;if(audio.paused){if(audio.readyState===0)audio.load();audio.play().then(()=>{button.innerHTML=coachIcon("pause");miniWave?.classList.add("is-playing");updateCoachPlaybackTime();}).catch(error=>{console.warn("Audio playback failed",error);audio.controls=true;audio.classList.remove("coach-native-audio");});audio.ontimeupdate=updateCoachPlaybackTime;audio.onended=()=>{button.innerHTML=coachIcon("play");miniWave?.classList.remove("is-playing");updateCoachPlaybackTime();};}else{audio.pause();button.innerHTML=coachIcon("play");miniWave?.classList.remove("is-playing");updateCoachPlaybackTime();}}
     async function previousTask(){stopAllAudio();if(state.isRecording)await stopRecording();state.index=Math.max(0,state.index-1);renderTask();saveAppState();}
     async function nextTask(){stopAllAudio();if(state.isRecording)await stopRecording();if(state.index<TASKS.length-1){state.index+=1;renderTask();saveAppState();return;}renderReview();show("screenReview");saveAppState();}
     function renderReview(){$("reviewList").innerHTML=TASKS.map((task,index)=>{const answer=state.answers[task.id];const status=answer&&answer.duration>=2&&answer.size>1000;return`<div class="review-item"><div><strong>${index+1}. ${escapeHtml(task.title)}</strong><br><span>${status?`${answer.duration}s recorded`:"Belum ada audio valid. Nilai task ini 0."}</span></div><b class="${status?"badge-ok":"badge-zero"}">${status?"Ready":"0"}</b></div>`;}).join("");}
-    async function finishTest(){stopAllAudio();if(state.isRecording)await stopRecording();if(state.pendingRecordingSave)await state.pendingRecordingSave;$("loading").classList.add("active");startScoringProgress();const tasks=await buildTaskPayload();const localResult=localZeroAwareResult(tasks);let apiScore=null;if(CONFIG.sheetsEndpoint&&CONFIG.useApiSpeakingScoring){apiScore=await scoreWithBackendFallback(tasks,localResult);}state.result=normalizeResult(chooseScoringResult(apiScore,localResult));renderResult();if(CONFIG.sheetsEndpoint){const saved=await postToBackend({action:"saveSpeakingResult",user:backendUser(),result:state.result});$("saveStatus").textContent=saved?.ok?"Data berhasil dikirim ke Google Sheets.":"Result tampil normal, tapi pengiriman ke Google Sheets belum berhasil. Download kartu hasil tetap bisa dipakai.";}stopScoringProgress();stopTimer();stopStream();$("loading").classList.remove("active");show("screenResult");saveAppState();}
-    async function resubmitScoring(){if(!CONFIG.sheetsEndpoint||!CONFIG.useApiSpeakingScoring)return;const button=$("resubmitScoreBtn");button.disabled=true;button.textContent="Sedang nilai ulang...";$("saveStatus").textContent="Sedang mencoba nilai ulang dari audio yang sudah kamu rekam.";try{$("loading").classList.add("active");startScoringProgress();const tasks=await buildTaskPayload();const localResult=localZeroAwareResult(tasks);const apiScore=await scoreWithBackendFallback(tasks,localResult);const nextResult=normalizeResult(chooseScoringResult(apiScore,localResult));state.result=nextResult;renderResult();saveAppState();const saved=await postToBackend({action:"saveSpeakingResult",user:backendUser(),result:state.result});$("saveStatus").textContent=saved?.ok?"Nilai ulang berhasil dan data terbaru sudah dikirim ke Google Sheets.":"Nilai ulang berhasil, tapi pengiriman ke Google Sheets belum berhasil.";}catch(error){console.warn("Resubmit scoring failed",error);$("saveStatus").textContent="Nilai ulang belum berhasil. Coba lagi saat koneksi lebih stabil."; }finally{stopScoringProgress();$("loading").classList.remove("active");button.disabled=false;button.innerHTML='<img src="icon/target.png" alt="">Coba Nilai Ulang';}}
-    function startScoringProgress(){clearInterval(state.scoringTimer);const startedAt=Date.now();const firstName=String(state.user?.name||"").trim().split(/\s+/)[0]||"there";$("scoringTitle").innerHTML=`Yeayyy good job, ${escapeHtml(firstName)}!<br>You have completed the test.`;$("scoringBar").style.width="8%";$("scoringPercent").textContent="8%";$("scoringText").textContent="Tunggu dulu yaa kami sedang menilai jawabanmu nih dan langsung kami kasih feedback.";$("scoringEta").textContent="Estimasi tersisa sekitar 2 menit.";const update=()=>{const elapsed=Math.round((Date.now()-startedAt)/1000);let progress;if(elapsed<=30){progress=8+(elapsed/30)*27;}else if(elapsed<=90){progress=35+((elapsed-30)/60)*30;}else if(elapsed<=150){progress=65+((elapsed-90)/60)*23;}else{progress=88+Math.min(11,((elapsed-150)/90)*11);}progress=Math.min(99,Math.round(progress));const remaining=Math.max(0,150-elapsed);$("scoringBar").style.width=`${progress}%`;$("scoringPercent").textContent=`${progress}%`;$("scoringEta").textContent=remaining>60?`Estimasi tersisa sekitar ${Math.ceil(remaining/60)} menit.`:remaining>0?`Estimasi tersisa sekitar ${remaining} detik.`:"Sabar ya, kami masih menilai seakurat mungkin.";};update();state.scoringTimer=setInterval(update,1000);}
-    function stopScoringProgress(){clearInterval(state.scoringTimer);state.scoringTimer=null;$("scoringBar").style.width="100%";$("scoringPercent").textContent="100%";$("scoringText").textContent="Selesai. Menampilkan hasil...";$("scoringEta").textContent="Tinggal sebentar lagi.";}
+    async function finishTest(){stopAllAudio();if(state.isRecording)await stopRecording();if(state.pendingRecordingSave)await state.pendingRecordingSave;$("loading").classList.add("active");startScoringProgress();const tasks=await buildTaskPayload();const localResult=localZeroAwareResult(tasks);let apiScore=null;if(CONFIG.sheetsEndpoint&&CONFIG.useApiSpeakingScoring){apiScore=await scoreWithBackendFallback(tasks,localResult);}state.result=normalizeResult(chooseScoringResult(apiScore,localResult));syncWebsiteTeacherNote(state.result);renderResult();if(CONFIG.sheetsEndpoint){const saved=await postToBackend({action:"saveSpeakingResult",user:backendUser(),result:state.result});$("saveStatus").textContent=saved?.ok?"Data berhasil dikirim ke Google Sheets.":"Result tampil normal, tapi pengiriman ke Google Sheets belum berhasil. Download kartu hasil tetap bisa dipakai.";}stopScoringProgress();stopTimer();stopStream();$("loading").classList.remove("active");show("screenResult");saveAppState();}
+    async function resubmitScoring(){if(!CONFIG.sheetsEndpoint||!CONFIG.useApiSpeakingScoring)return;const button=$("resubmitScoreBtn");button.disabled=true;button.textContent="Sedang nilai ulang...";$("saveStatus").textContent="Sedang mencoba nilai ulang dari audio yang sudah kamu rekam.";try{$("loading").classList.add("active");startScoringProgress();const tasks=await buildTaskPayload();const localResult=localZeroAwareResult(tasks);const apiScore=await scoreWithBackendFallback(tasks,localResult);const nextResult=normalizeResult(chooseScoringResult(apiScore,localResult));state.result=nextResult;syncWebsiteTeacherNote(state.result);renderResult();saveAppState();const saved=await postToBackend({action:"saveSpeakingResult",user:backendUser(),result:state.result});$("saveStatus").textContent=saved?.ok?"Nilai ulang berhasil dan data terbaru sudah dikirim ke Google Sheets.":"Nilai ulang berhasil, tapi pengiriman ke Google Sheets belum berhasil.";}catch(error){console.warn("Resubmit scoring failed",error);$("saveStatus").textContent="Nilai ulang belum berhasil. Coba lagi saat koneksi lebih stabil."; }finally{stopScoringProgress();$("loading").classList.remove("active");button.disabled=false;button.innerHTML='<img src="icon/target.png" alt="">Coba Nilai Ulang';}}
+    function startScoringProgress(){clearInterval(state.scoringTimer);clearTimeout(state.scoringTipTimer);const startedAt=Date.now();const firstName=String(state.user?.name||"").trim().split(/\s+/)[0]||"there";$("scoringTitle").innerHTML=`Yeayyy good job, ${escapeHtml(firstName)}!<br>You have completed the test.`;$("scoringBar").style.width="8%";$("scoringPercent").textContent="8%";startScoringTips();const update=()=>{const elapsed=Math.round((Date.now()-startedAt)/1000);let progress;if(elapsed<=30){progress=8+(elapsed/30)*27;}else if(elapsed<=90){progress=35+((elapsed-30)/60)*30;}else if(elapsed<=150){progress=65+((elapsed-90)/60)*23;}else{progress=88+Math.min(11,((elapsed-150)/90)*11);}progress=Math.min(99,Math.round(progress));$("scoringBar").style.width=`${progress}%`;$("scoringPercent").textContent=`${progress}%`;};update();state.scoringTimer=setInterval(update,1000);}
+    function startScoringTips(){const tipEl=$("scoringTip");if(!tipEl)return;let index=0;const showTip=()=>{const tip=SCORING_TIPS[index%SCORING_TIPS.length];tipEl.style.opacity=".35";setTimeout(()=>{tipEl.textContent=tip;tipEl.style.opacity=".95";},160);index+=1;const duration=clamp(1100+(tip.length*25),2600,5200);state.scoringTipTimer=setTimeout(showTip,duration);};showTip();}
+    function stopScoringProgress(){clearInterval(state.scoringTimer);clearTimeout(state.scoringTipTimer);state.scoringTimer=null;state.scoringTipTimer=null;$("scoringBar").style.width="100%";$("scoringPercent").textContent="100%";const tipEl=$("scoringTip");if(tipEl)tipEl.textContent="";}
     async function buildTaskPayload(){const items=[];for(const task of TASKS){const answer=state.answers[task.id];const isValid=answer&&answer.duration>=2&&answer.size>1000;let apiBlob=null;if(isValid)apiBlob=await prepareAudioBlobForApi(answer.blob);items.push({id:task.id,title:task.title,prompt:task.prompt,imageContext:task.imageContext||"",targetSeconds:task.targetSeconds,duration:isValid?answer.duration:0,mimeType:apiBlob?.type||"",audioBase64:apiBlob?await blobToBase64(apiBlob):""});}return items;}
     async function prepareAudioBlobForApi(blob){try{return await convertAudioBlobToWav(blob,16000);}catch(error){console.warn("WAV conversion failed, using original audio",error);return blob;}}
     async function convertAudioBlobToWav(blob,targetSampleRate=16000){const arrayBuffer=await blob.arrayBuffer();const AudioCtx=window.AudioContext||window.webkitAudioContext;const audioCtx=new AudioCtx();try{const decoded=await audioCtx.decodeAudioData(arrayBuffer.slice(0));const length=Math.ceil(decoded.duration*targetSampleRate);const offline=new OfflineAudioContext(1,length,targetSampleRate);const source=offline.createBufferSource();source.buffer=decoded;source.connect(offline.destination);source.start(0);const rendered=await offline.startRendering();return new Blob([encodeWav(rendered)],{type:"audio/wav"});}finally{audioCtx.close?.();}}
@@ -2652,6 +3190,7 @@
     function buildStrengthText(result){const entries=CRITERIA.map(([key,label,max])=>({key,label,help:CRITERIA_HELP[key],percentage:Math.round((clamp(result.criteria[key],0,max)/max)*100)})).sort((a,b)=>b.percentage-a.percentage);const best=entries[0];if(!best||best.percentage<35)return"Belum ada area yang benar-benar stabil. Mulai dari berani menjawab, suara jelas, dan kalimat pendek yang lengkap.";return`${best.label} paling kuat (${best.percentage}%). Ini berarti ${best.help.toLowerCase()} Pertahankan bagian ini saat menjawab soal berikutnya.`;}
     function buildFocusText(result){const entries=CRITERIA.map(([key,label,max])=>({key,label,help:CRITERIA_HELP[key],percentage:Math.round((clamp(result.criteria[key],0,max)/max)*100)})).sort((a,b)=>a.percentage-b.percentage);const weak=entries[0];if(!weak)return"Latih jawaban yang lebih panjang, jelas, dan konsisten.";return`Fokus utama: ${weak.label} (${weak.percentage}%). Artinya, ${weak.help.toLowerCase()} Latih dengan 2-3 kalimat pendek dulu, lalu tambah alasan/contoh.`;}
     function buildTeacherNote(result){if(result.overallScore<=25)return"Kamu masih di tahap awal speaking. Mulai dari kalimat sederhana, baca keras pelan-pelan, lalu latihan menjawab pertanyaan pendek setiap hari.";if(result.overallScore<=45)return"Kamu sudah mulai bisa menyampaikan ide sederhana. Berikutnya fokus ke grammar dasar saat bicara, pengucapan yang lebih jelas, dan jawaban yang sedikit lebih panjang.";if(result.overallScore<=60)return"Dasar speaking kamu sudah mulai terbentuk. Tantangan berikutnya adalah membuat jawaban lebih runtut, mengurangi jeda yang terlalu panjang, dan menambah variasi kosakata.";if(result.overallScore<=75)return"Speaking kamu sudah cukup komunikatif. Sekarang tinggal dipoles agar lebih natural, lebih akurat, dan lebih lancar saat menjelaskan alasan atau contoh.";return"Speaking kamu sudah kuat. Fokus berikutnya adalah precision, intonation, dan cara menyampaikan ide yang lebih matang dalam konteks profesional maupun diskusi.";}
+    function syncWebsiteTeacherNote(result){if(result)result.teacherNote=buildTeacherNote(result);return result;}
     function shortStrengthText(result){const entries=CRITERIA.map(([key,label,max])=>({label,percentage:Math.round((clamp(result.criteria[key],0,max)/max)*100)})).sort((a,b)=>b.percentage-a.percentage);const best=entries[0];return best&&best.percentage>=35?`${best.label} paling kuat (${best.percentage}%). Pertahankan saat latihan berikutnya.`:"Mulai dari suara jelas dan berani menjawab dengan kalimat pendek.";}
     function shortWeaknessText(result){const entries=CRITERIA.map(([key,label,max])=>({label,percentage:Math.round((clamp(result.criteria[key],0,max)/max)*100)})).sort((a,b)=>a.percentage-b.percentage);const weak=entries[0];return weak?`Prioritas latihan: ${weak.label} (${weak.percentage}%). Jawab 2-3 kalimat pendek dulu.`:"Latih jawaban yang lebih jelas, runtut, dan konsisten.";}
     function shortTeacherNote(result){if(result.overallScore<=25)return"Mulai dari kalimat sederhana, read aloud, dan short answer setiap hari.";if(result.overallScore<=45)return"Perkuat grammar dasar, pronunciation, dan jawab sedikit lebih panjang.";if(result.overallScore<=60)return"Rapikan alur jawaban, kurangi jeda panjang, dan tambah variasi kosakata.";if(result.overallScore<=75)return"Speaking sudah komunikatif. Poles natural fluency, detail, dan akurasi.";return"Speaking sudah kuat. Latih precision, intonation, dan konteks profesional.";}
