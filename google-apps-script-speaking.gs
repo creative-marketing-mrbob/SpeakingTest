@@ -1,5 +1,5 @@
 const SHEET_NAME = 'Speaking Level Check';
-const KIE_CHAT_COMPLETIONS_URL = 'https://api.kie.ai/gemini-2.5-flash/v1/chat/completions';
+const KIE_CHAT_COMPLETIONS_URL = 'https://api.kie.ai/gemini-3-5-flash-openai/v1/chat/completions';
 const KIE_FILE_UPLOAD_URL = 'https://kieai.redpandaai.co/api/file-base64-upload';
 const SPEAKING_AUDIO_RETENTION_DAYS = 1;
 const SPEAKING_ARTIFACT_RETENTION_DAYS = 30;
@@ -65,7 +65,7 @@ function scoreSpeakingWithGemini(payload) {
     const keyState = { keys, blocked: {} };
     const taskScores = tasks.map((task) => scoreSingleTaskWithGemini(keyState, task));
     const result = buildSpeakingResultFromTasks(taskScores);
-    result.source = 'kie.ai gemini-2.5-flash';
+    result.source = 'kie.ai gemini-3-5-flash-openai';
     return result;
   } catch (error) {
     return {
@@ -98,6 +98,14 @@ function getScriptPropertyKeys(multiName, singleName) {
 function scoreSingleTaskWithGemini(keyState, task) {
   if (!task.audioBase64 || task.duration < 2) {
     return zeroTaskScore(task, 'Tidak ada audio valid untuk task ini.');
+  }
+
+  const audioActivity = analyzeWavActivity(task);
+  if (audioActivity.silent) {
+    return zeroTaskScore(task, 'Rekaman hening, jadi tidak ada speaking yang bisa dinilai.');
+  }
+  if (!audioActivity.hasSpeechLikeSignal) {
+    throw new Error('Rekaman terlalu pelan atau tidak cukup jelas untuk dinilai. Silakan rekam ulang tes.');
   }
 
   const prompt = [
@@ -141,6 +149,66 @@ function scoreSingleTaskWithGemini(keyState, task) {
   ].join('\n');
 
   return callKieWithBackupKeys(keyState, prompt, task);
+}
+
+function analyzeWavActivity(task) {
+  if (!String(task.mimeType || '').toLowerCase().includes('wav')) {
+    throw new Error('Format audio belum dapat diverifikasi. Silakan rekam ulang tes.');
+  }
+  const bytes = Utilities.base64Decode(task.audioBase64);
+  const byte = (index) => bytes[index] & 255;
+  const label = (index) => String.fromCharCode(byte(index), byte(index + 1), byte(index + 2), byte(index + 3));
+  const uint16 = (index) => byte(index) | (byte(index + 1) << 8);
+  const uint32 = (index) => (byte(index) | (byte(index + 1) << 8) | (byte(index + 2) << 16) | (byte(index + 3) << 24)) >>> 0;
+  if (bytes.length < 44 || label(0) !== 'RIFF' || label(8) !== 'WAVE') {
+    throw new Error('Rekaman WAV tidak valid. Silakan rekam ulang tes.');
+  }
+
+  let sampleRate = 0;
+  let dataStart = -1;
+  let dataLength = 0;
+  for (let offset = 12; offset + 8 <= bytes.length;) {
+    const size = uint32(offset + 4);
+    const start = offset + 8;
+    if (size > bytes.length - start) throw new Error('Rekaman WAV terpotong. Silakan rekam ulang tes.');
+    if (label(offset) === 'fmt ') {
+      if (size < 16 || uint16(start) !== 1 || uint16(start + 2) !== 1 || uint16(start + 14) !== 16) {
+        throw new Error('Rekaman harus berupa WAV PCM mono 16-bit. Silakan rekam ulang tes.');
+      }
+      sampleRate = uint32(start + 4);
+    } else if (label(offset) === 'data') {
+      dataStart = start;
+      dataLength = size;
+    }
+    offset = start + size + (size & 1);
+  }
+  if (!sampleRate || dataStart < 0 || dataLength < sampleRate * 2) {
+    throw new Error('Rekaman tidak lengkap. Silakan rekam ulang tes.');
+  }
+
+  const frameSamples = Math.max(1, Math.round(sampleRate * 0.02));
+  const frameLevels = [];
+  let peak = 0;
+  for (let offset = dataStart; offset + 1 < dataStart + dataLength;) {
+    let sumSquares = 0;
+    let count = 0;
+    for (; count < frameSamples && offset + 1 < dataStart + dataLength; count += 1, offset += 2) {
+      const unsigned = uint16(offset);
+      const sample = unsigned >= 32768 ? unsigned - 65536 : unsigned;
+      const level = Math.abs(sample) / 32768;
+      peak = Math.max(peak, level);
+      sumSquares += level * level;
+    }
+    if (count) frameLevels.push(Math.sqrt(sumSquares / count));
+  }
+  const activeFrames = frameLevels.filter((level) => level >= 0.008).length;
+  const sortedLevels = frameLevels.slice().sort((a, b) => a - b);
+  const low = sortedLevels[Math.floor(sortedLevels.length * 0.1)] || 0;
+  const high = sortedLevels[Math.floor(sortedLevels.length * 0.9)] || 0;
+  return {
+    silent: peak < 0.002 && activeFrames < 5,
+    hasSpeechLikeSignal: peak >= 0.015 && activeFrames >= 10 && high >= 0.012 && high >= Math.max(low * 1.5, low + 0.005)
+  };
 }
 
 function callKieWithBackupKeys(keyState, prompt, task) {
@@ -729,7 +797,7 @@ function syncSpeakingHeaders() {
 }
 
 function debugAiProviders() {
-  return [{ provider: 'kie.ai gemini-2.5-flash', keys: getKieApiKeys().length }];
+  return [{ provider: 'kie.ai gemini-3-5-flash-openai', keys: getKieApiKeys().length }];
 }
 
 function getLevelName(score) {
