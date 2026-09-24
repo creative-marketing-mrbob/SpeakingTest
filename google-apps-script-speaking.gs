@@ -1,5 +1,6 @@
 const SHEET_NAME = 'Speaking Level Check';
 const KIE_CHAT_COMPLETIONS_URL = 'https://api.kie.ai/gemini-2.5-flash/v1/chat/completions';
+const KIE_FILE_UPLOAD_URL = 'https://kieai.redpandaai.co/api/file-base64-upload';
 const SPEAKING_AUDIO_RETENTION_DAYS = 1;
 const SPEAKING_ARTIFACT_RETENTION_DAYS = 30;
 const SPEAKING_ARTIFACT_FOLDER_NAME = 'Speaking Level Check Artifacts';
@@ -13,7 +14,8 @@ const HEADERS = [
 function doPost(e) {
   const payload = JSON.parse(e.postData.contents || '{}');
   if (payload.action === 'scoreSpeaking') {
-    return jsonResponse({ ok: true, speakingScore: scoreSpeakingWithGemini(payload) });
+    const speakingScore = scoreSpeakingWithGemini(payload);
+    return jsonResponse({ ok: !speakingScore.error, speakingScore });
   }
   if (payload.action === 'saveSpeakingResult') {
     return jsonResponse({ ok: true, resultSave: saveSpeakingResult(payload) });
@@ -43,8 +45,7 @@ function authorizeSpeakingBackend() {
 
 function scoreSpeakingWithGemini(payload) {
   const keys = getKieApiKeys();
-  const localFallback = payload.localResult || zeroResult('missing api key');
-  if (!keys.length) return localFallback;
+  if (!keys.length) return { error: 'KIE_API_KEYS belum diatur di Script Properties.', source: 'kie configuration error' };
   cleanupOldSpeakingFiles();
 
   const tasks = (payload.tasks || []).map((task) => ({
@@ -58,7 +59,7 @@ function scoreSpeakingWithGemini(payload) {
     audioBase64: String(task.audioBase64 || '')
   }));
 
-  if (!tasks.some((task) => task.audioBase64)) return localFallback;
+  if (!tasks.some((task) => task.audioBase64)) return zeroResult('no audio submitted');
 
   try {
     const keyState = { keys, blocked: {} };
@@ -67,16 +68,16 @@ function scoreSpeakingWithGemini(payload) {
     result.source = 'kie.ai gemini-2.5-flash';
     return result;
   } catch (error) {
-    const fallback = localFallback;
-    fallback.source = 'local fallback after kie api error';
-    fallback.error = String(error.message || error);
-    fallback.debug = {
-      message: String(error.message || error),
-      body: String(error.body || '').slice(0, 1000),
-      audioFormat: error.audioFormat || '',
-      mimeType: error.mimeType || ''
+    return {
+      source: 'kie api error',
+      error: String(error.message || error),
+      debug: {
+        message: String(error.message || error),
+        body: String(error.body || '').slice(0, 1000),
+        audioFormat: error.audioFormat || '',
+        mimeType: error.mimeType || ''
+      }
     };
-    return fallback;
   }
 }
 
@@ -170,6 +171,7 @@ function callKieWithBackupKeys(keyState, prompt, task) {
 function callKieOnce(key, prompt, task) {
   const audioFormat = getAudioFormat(task.mimeType);
   try {
+    const audioUrl = uploadAudioToKie(key, task);
     const response = UrlFetchApp.fetch(KIE_CHAT_COMPLETIONS_URL, {
       method: 'post',
       contentType: 'application/json',
@@ -180,13 +182,7 @@ function callKieOnce(key, prompt, task) {
           role: 'user',
           content: [
             { type: 'text', text: prompt },
-            {
-              type: 'input_audio',
-              input_audio: {
-                data: task.audioBase64,
-                format: audioFormat
-              }
-            }
+            { type: 'image_url', image_url: { url: audioUrl } }
           ]
         }],
         temperature: 0.05,
@@ -228,15 +224,16 @@ function callKieOnce(key, prompt, task) {
         }
       })
     });
-    if (response.getResponseCode() >= 400) {
-      const error = new Error(`Kie API error ${response.getResponseCode()}: ${response.getContentText().slice(0, 500)}`);
-      error.status = response.getResponseCode();
+    const responseText = response.getContentText();
+    const body = JSON.parse(responseText);
+    if (response.getResponseCode() >= 400 || (body.code && Number(body.code) >= 400)) {
+      const error = new Error(`Kie API error ${body.code || response.getResponseCode()}: ${body.msg || responseText.slice(0, 500)}`);
+      error.status = Number(body.code || response.getResponseCode());
       error.body = response.getContentText();
       error.audioFormat = audioFormat;
       error.mimeType = task.mimeType;
       throw error;
     }
-    const body = JSON.parse(response.getContentText());
     const text = body.choices?.[0]?.message?.content || '{}';
     if (!body.choices?.length || text === '{}') {
       const error = new Error(`Kie API returned no scoring candidate: ${response.getContentText().slice(0, 500)}`);
@@ -264,28 +261,31 @@ function getAudioFormat(mimeType) {
   return 'wav';
 }
 
-function createPublicAudioFile(task) {
-  const mimeType = task.mimeType || 'audio/webm';
-  const extension = mimeType.includes('wav') ? 'wav' : mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
-  const bytes = Utilities.base64Decode(task.audioBase64);
+function uploadAudioToKie(key, task) {
+  const mimeType = task.mimeType || 'audio/wav';
+  const extension = getAudioFormat(mimeType);
   const safeId = String(task.id || 'task').replace(/[^a-z0-9_-]/gi, '-');
-  const name = `speaking-${safeId}-${Date.now()}.${extension}`;
-  const blob = Utilities.newBlob(bytes, mimeType, name);
-  const file = DriveApp.createFile(blob);
-  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  return {
-    fileId: file.getId(),
-    url: `https://drive.google.com/uc?export=download&id=${file.getId()}`
-  };
-}
-
-function cleanupPublicAudioFile(fileId) {
-  if (!fileId) return;
-  try {
-    DriveApp.getFileById(fileId).setTrashed(true);
-  } catch (error) {
-    console.warn(`Failed to cleanup public audio file: ${error}`);
+  const response = UrlFetchApp.fetch(KIE_FILE_UPLOAD_URL, {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: `Bearer ${key}` },
+    muteHttpExceptions: true,
+    payload: JSON.stringify({
+      base64Data: `data:${mimeType};base64,${task.audioBase64}`,
+      uploadPath: 'speaking-tests',
+      fileName: `speaking-${safeId}-${Date.now()}.${extension}`
+    })
+  });
+  const bodyText = response.getContentText();
+  const body = JSON.parse(bodyText);
+  const url = body.data?.downloadUrl || body.data?.fileUrl;
+  if (response.getResponseCode() >= 400 || body.success !== true || !url) {
+    const error = new Error(`Kie audio upload error ${body.code || response.getResponseCode()}: ${body.msg || bodyText.slice(0, 500)}`);
+    error.status = Number(body.code || response.getResponseCode());
+    error.body = bodyText;
+    throw error;
   }
+  return url;
 }
 
 function cleanupOldSpeakingAudioFiles() {
